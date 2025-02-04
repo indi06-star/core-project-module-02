@@ -1,7 +1,6 @@
 import mysql from 'mysql2/promise'
 import express from 'express'
 import {config} from 'dotenv'
-
 config()
 
 const pool = mysql.createPool({
@@ -18,4 +17,5 @@ app.listen(4000, () => {
   console.log('Server is running at http://localhost:4000');
   console.log("Hi..."); 
 });
+
 
