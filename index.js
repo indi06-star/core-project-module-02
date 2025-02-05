@@ -53,8 +53,8 @@ app.get('/employees/:employee_id', async (req, res) => {
 
 // Route to add a new employee
 app.post('/employees', async (req, res) => {
-  const { full_name, position, contact, history, review, hr_id } = req.body;
-  res.json({ employees: await insertEmployee(full_name, position, contact, history, review, hr_id) });
+  const { full_name, position, contact, history, review, department_id } = req.body;
+  res.json({ employees: await insertEmployee(full_name, position, contact, history, review, department_id) });
 });
 
 // Route to delete an employee by ID
@@ -64,8 +64,8 @@ app.delete('/employees/:employee_id', async (req, res) => {
 
 // Route to update an employee's information
 app.patch('/employees/:employee_id', async (req, res) => {
-  const { full_name, position, contact, history, review, hr_id } = req.body;
-  res.json({ employees: await updateEmployee(full_name, position, contact, history, review, hr_id, req.params.employee_id) });
+  const { full_name, position, contact, history, review, department_id } = req.body;
+  res.json({ employees: await updateEmployee(full_name, position, contact, history, review, department_id, req.params.employee_id) });
 });
 
 // Get all employees from the database
@@ -79,10 +79,10 @@ const getSingleEmployee = async (employee_id) => {
   return data;
 };
 
-const insertEmployee = async (full_name, position, contact, history, review, hr_id) => {
+const insertEmployee = async (full_name, position, contact, history, review, department_id) => {
   await pool.query(
-    'INSERT INTO employees (full_name, position, contact, history, review, hr_id) VALUES (?, ?, ?, ?, ?, ?)',
-    [full_name, position, contact, history, review, hr_id]
+    'INSERT INTO employees (full_name, position, contact, history, review, department_id) VALUES (?, ?, ?, ?, ?, ?)',
+    [full_name, position, contact, history, review, department_id]
   );
   return await getEmployees(); // Return the updated employee list
 };
@@ -92,10 +92,10 @@ const deleteSingleEmployee = async (employee_id) => {
   return await getEmployees(); // Return the updated employee list
 };
 
-const updateEmployee = async (full_name, position, contact, history, review, hr_id, employee_id) => {
+const updateEmployee = async (full_name, position, contact, history, review, department_id, employee_id) => {
   await pool.query(
-    'UPDATE employees SET full_name = ?, position = ?, contact = ?, history = ?, review = ?, hr_id = ? WHERE employee_id = ?',
-    [full_name, position, contact, history, review, hr_id, employee_id]
+    'UPDATE employees SET full_name = ?, position = ?, contact = ?, history = ?, review = ?, department_id = ? WHERE employee_id = ?',
+    [full_name, position, contact, history, review, department_id, employee_id]
   );
   return await getEmployees(); // Return the updated employee list
 };
