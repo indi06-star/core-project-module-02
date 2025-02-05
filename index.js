@@ -1,5 +1,6 @@
 import mysql from 'mysql2/promise';
 import express from 'express';
+import cors from "cors"
 import { config } from 'dotenv';
 config();
 
@@ -10,7 +11,9 @@ const pool = mysql.createPool({
   database: process.env.DATABASE,
 });
 const app = express();
+const cors = require("cors")
 app.use(express.json());
+app.use(cors()); //Allow cross-origin requests
 
 // Start the server on port 4000
 app.listen(4000, () => {
