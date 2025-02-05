@@ -18,7 +18,7 @@ app.listen(4000, () => {
   console.log('Hi...');
 });
 
-// HR STAFF ROUTES
+//-------------------------------------------HR STAFF---------------------------------------------------------------
 // Route to get all HR staff
 app.get('/hr-staff', async (req, res) => {
   res.json({ hr_staff: await getHRStaff() });
@@ -40,7 +40,7 @@ const getSingleHRStaff = async (hr_id) => {
   return data;
 };
 
-// EMPLOYEES ROUTES
+//-------------------------------------------------------------EMPLOYEES----------------------------------------------------------------------
 // Route to get all employees
 app.get('/employees', async (req, res) => {
   res.json({ employees: await getEmployees() });
@@ -53,8 +53,8 @@ app.get('/employees/:employee_id', async (req, res) => {
 
 // Route to add a new employee
 app.post('/employees', async (req, res) => {
-  const { full_name, position, contact, history, review, department_id } = req.body;
-  res.json({ employees: await insertEmployee(full_name, position, contact, history, review, department_id) });
+  const { full_name, position, contact, history, review, hr_id } = req.body;
+  res.json({ employees: await insertEmployee(full_name, position, contact, history, review, hr_id) });
 });
 
 // Route to delete an employee by ID
@@ -64,25 +64,41 @@ app.delete('/employees/:employee_id', async (req, res) => {
 
 // Route to update an employee's information
 app.patch('/employees/:employee_id', async (req, res) => {
-  const { full_name, position, contact, history, review, department_id } = req.body;
-  res.json({ employees: await updateEmployee(full_name, position, contact, history, review, department_id, req.params.employee_id) });
+  const { full_name, position, contact, history, review, hr_id } = req.body;
+  res.json({ employees: await updateEmployee(full_name, position, contact, history, review, hr_id, req.params.employee_id) });
 });
 
 // Get all employees from the database
+// const getEmployees = async () => {
+//   const [data] = await pool.query('SELECT * FROM employees');
+//   return data;
+// };
+
+//Get all employees (inner join with dep table, to get dep_name)
 const getEmployees = async () => {
-  const [data] = await pool.query('SELECT * FROM employees');
+  const [data] = await pool.query(`
+    SELECT employees.*, departments.department_name 
+    FROM employees
+    INNER JOIN departments ON employees.department_id = departments.department_id
+  `);
   return data;
 };
 
+//Get single employee(inner join)
 const getSingleEmployee = async (employee_id) => {
-  const [data] = await pool.query('SELECT * FROM employees WHERE employee_id = ?', [employee_id]);
+  const [data] = await pool.query(`
+    SELECT employees.*, departments.department_name 
+    FROM employees
+    INNER JOIN departments ON employees.department_id = departments.department_id
+    WHERE employees.employee_id = ?
+  `, [employee_id]);
   return data;
 };
 
-const insertEmployee = async (full_name, position, contact, history, review, department_id) => {
+const insertEmployee = async (full_name, position, contact, history, review, hr_id) => {
   await pool.query(
-    'INSERT INTO employees (full_name, position, contact, history, review, department_id) VALUES (?, ?, ?, ?, ?, ?)',
-    [full_name, position, contact, history, review, department_id]
+    'INSERT INTO employees (full_name, position, contact, history, review, hr_id) VALUES (?, ?, ?, ?, ?, ?)',
+    [full_name, position, contact, history, review, hr_id]
   );
   return await getEmployees(); // Return the updated employee list
 };
@@ -92,15 +108,15 @@ const deleteSingleEmployee = async (employee_id) => {
   return await getEmployees(); // Return the updated employee list
 };
 
-const updateEmployee = async (full_name, position, contact, history, review, department_id, employee_id) => {
+const updateEmployee = async (full_name, position, contact, history, review, hr_id, employee_id) => {
   await pool.query(
-    'UPDATE employees SET full_name = ?, position = ?, contact = ?, history = ?, review = ?, department_id = ? WHERE employee_id = ?',
-    [full_name, position, contact, history, review, department_id, employee_id]
+    'UPDATE employees SET full_name = ?, position = ?, contact = ?, history = ?, review = ?, hr_id = ? WHERE employee_id = ?',
+    [full_name, position, contact, history, review, hr_id, employee_id]
   );
   return await getEmployees(); // Return the updated employee list
 };
 
-// LEAVE REQUESTS ROUTES
+//----------------------------------------------------------- LEAVE REQUESTS---------------------------------------------------------------
 // Route to get all leave requests
 app.get('/leave-requests', async (req, res) => {
   res.json({ leave_requests: await getLeaveRequests() });
@@ -160,7 +176,7 @@ const updateLeaveRequest = async (employee_id, date, status, reason, action, lea
   return await getLeaveRequests(); // Return the updated leave request list
 };
 
-// ATTENDANCE ROUTES
+//-------------------------------------------------------------- ATTENDANCE---------------------------------------------------------------------
 // Route to get all attendance records
 app.get('/attendance-records', async (req, res) => {
   res.json({ attendance_records: await getAttendanceRecords() });
@@ -220,7 +236,7 @@ const updateAttendanceRecord = async (employee_id, employee_name, month_year, da
   return await getAttendanceRecords(); // Return the updated attendance list
 };
 
-// PAYROLL ROUTES
+//--------------------------------------------------------- PAYROLL-----------------------------------------------------------------------------
 // Route to get all payroll records
 app.get('/payroll-records', async (req, res) => {
   res.json({ payroll_records: await getPayrollRecords() });
