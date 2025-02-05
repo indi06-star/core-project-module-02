@@ -1,12 +1,12 @@
 import express from 'express';
-import {getAttendanceRecordsCon,getSingleAttendanceRecordCon,postAttendanceRecordCon,deleteSingleAttendanceRecordCon,patchAttendanceRecordCon} from '../controller/attendanceController.js';
+import { getEmployeesCon, getSingleEmployeeCon, postEmployeeCon, deleteSingleEmployeeCon, patchEmployeeCon } from '../controller/employeeController.js';
 
 const router = express.Router();
 
-router.get('/', getAttendanceRecordsCon);
-router.get('/:id', getSingleAttendanceRecordCon);
-router.post('/', postAttendanceRecordCon);
-router.delete('/:attendance_id', deleteSingleAttendanceRecordCon);
-router.patch('/:attendance_id', patchAttendanceRecordCon);
+router.get('/', getEmployeesCon);
+router.get('/:employee_id', getSingleEmployeeCon);
+router.post('/', postEmployeeCon);
+router.delete('/:employee_id', deleteSingleEmployeeCon);
+router.patch('/:employee_id', patchEmployeeCon);
 
 export default router;
