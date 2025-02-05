@@ -18,7 +18,7 @@ app.listen(4000, () => {
   console.log('Hi...');
 });
 
-// HR STAFF ROUTES
+// HR Staff Routes
 // Route to get all HR staff
 app.get('/hr-staff', async (req, res) => {
   res.json({ hr_staff: await getHRStaff() });
@@ -29,15 +29,57 @@ app.get('/hr-staff/:hr_id', async (req, res) => {
   res.json({ hr_staff: await getSingleHRStaff(req.params.hr_id) });
 });
 
+// Route to add a new HR staff
+app.post('/hr-staff', async (req, res) => {
+  const { full_name, position, department_id, contact, salary, history, image_path } = req.body;
+  res.json({ hr_staff: await insertHRStaff(full_name, position, department_id, contact, salary, history, image_path) });
+});
+
+// Route to delete an HR staff by ID
+app.delete('/hr-staff/:hr_id', async (req, res) => {
+  res.json({ hr_staff: await deleteSingleHRStaff(req.params.hr_id) });
+});
+
+// Route to update an HR staff's information
+app.patch('/hr-staff/:hr_id', async (req, res) => {
+  const { full_name, position, department_id, contact, salary, history, image_path } = req.body;
+  res.json({ hr_staff: await updateHRStaff(full_name, position, department_id, contact, salary, history, image_path, req.params.hr_id) });
+});
+
 // Get all HR staff from the database
 const getHRStaff = async () => {
   const [data] = await pool.query('SELECT * FROM hr_staff');
   return data;
 };
 
+// Get a single HR staff by ID
 const getSingleHRStaff = async (hr_id) => {
   const [data] = await pool.query('SELECT * FROM hr_staff WHERE hr_id = ?', [hr_id]);
   return data;
+};
+
+// Insert a new HR staff record into the database
+const insertHRStaff = async (full_name, position, department_id, contact, salary, history, image_path) => {
+  await pool.query(
+    'INSERT INTO hr_staff (full_name, position, department_id, contact, salary, history, image_path) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [full_name, position, department_id, contact, salary, history, image_path]
+  );
+  return await getHRStaff(); // Return the updated HR staff list
+};
+
+// Delete an HR staff record by ID
+const deleteSingleHRStaff = async (hr_id) => {
+  await pool.query('DELETE FROM hr_staff WHERE hr_id = ?', [hr_id]);
+  return await getHRStaff(); // Return the updated HR staff list
+};
+
+// Update an HR staff record by ID
+const updateHRStaff = async (full_name, position, department_id, contact, salary, history, image_path, hr_id) => {
+  await pool.query(
+    'UPDATE hr_staff SET full_name = ?, position = ?, department_id = ?, contact = ?, salary = ?, history = ?, image_path = ? WHERE hr_id = ?',
+    [full_name, position, department_id, contact, salary, history, image_path, hr_id]
+  );
+  return await getHRStaff(); // Return the updated HR staff list
 };
 
 // EMPLOYEES ROUTES
@@ -278,4 +320,70 @@ const updatePayrollRecord = async (employee_id, hours_worked, leave_deductions, 
     [employee_id, hours_worked, leave_deductions, final_salary, payroll_id]
   );
   return await getPayrollRecords(); // Return the updated payroll list
+};
+
+//DEPARTMENT ROUTES
+// Department Routes
+
+// Route to get all departments
+app.get('/departments', async (req, res) => {
+  res.json({ departments: await getDepartments() });
+});
+
+// Route to get a single department by ID
+app.get('/departments/:department_id', async (req, res) => {
+  res.json({ department: await getSingleDepartment(req.params.department_id) });
+});
+
+// Route to add a new department
+app.post('/departments', async (req, res) => {
+  const { department_name } = req.body;
+  res.json({ departments: await insertDepartment(department_name) });
+});
+
+// Route to delete a department by ID
+app.delete('/departments/:department_id', async (req, res) => {
+  res.json({ department: await deleteSingleDepartment(req.params.department_id) });
+});
+
+// Route to update a department's information
+app.patch('/departments/:department_id', async (req, res) => {
+  const { department_name } = req.body;
+  res.json({ departments: await updateDepartment(department_name, req.params.department_id) });
+});
+
+// Get all departments from the database
+const getDepartments = async () => {
+  const [data] = await pool.query('SELECT * FROM departments');
+  return data;
+};
+
+// Get a single department by ID
+const getSingleDepartment = async (department_id) => {
+  const [data] = await pool.query('SELECT * FROM departments WHERE department_id = ?', [department_id]);
+  return data;
+};
+
+// Insert a new department into the database
+const insertDepartment = async (department_name) => {
+  await pool.query(
+    'INSERT INTO departments (department_name) VALUES (?)',
+    [department_name]
+  );
+  return await getDepartments(); // Return the updated department list
+};
+
+// Delete a department by ID
+const deleteSingleDepartment = async (department_id) => {
+  await pool.query('DELETE FROM departments WHERE department_id = ?', [department_id]);
+  return await getDepartments(); // Return the updated department list
+};
+
+// Update a department by ID
+const updateDepartment = async (department_name, department_id) => {
+  await pool.query(
+    'UPDATE departments SET department_name = ? WHERE department_id = ?',
+    [department_name, department_id]
+  );
+  return await getDepartments(); // Return the updated department list
 };
