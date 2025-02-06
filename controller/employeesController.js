@@ -6,77 +6,65 @@ import {
     updateEmployee
 } from "../model/employeesModal.js";
 
+// Get all employees
 const getEmployeesCon = async (req, res) => {
     try {
         const employees = await getEmployees();
-        res.json({ employees });
+        res.status(200).json({ employees });
     } catch (error) {
-        console.error("Error fetching employees:", error);
-        res.status(500).json({ message: "Failed to fetch employees" });
+        res.status(500).json({ message: "Error fetching employees", error: error.message });
     }
 };
 
+// Get a single employee
 const getSingleEmployeeCon = async (req, res) => {
     try {
         const employee = await getSingleEmployee(req.params.employee_id);
-        if (!employee) {
+        if (!employee.length) {
             return res.status(404).json({ message: "Employee not found" });
         }
-        res.json({ employee });
+        res.status(200).json({ employee });
     } catch (error) {
-        console.error("Error fetching employee:", error);
-        res.status(500).json({ message: "Failed to fetch employee" });
+        res.status(500).json({ message: "Error fetching employee", error: error.message });
     }
 };
 
+// Add a new employee
 const postEmployeeCon = async (req, res) => {
-    const { full_name, position, contact, history, review, department_id } = req.body;
     try {
+        const { full_name, position, contact, history, review, department_id } = req.body;
         if (!full_name || !position || !contact || !department_id) {
             return res.status(400).json({ message: "Missing required fields" });
         }
-        const newEmployee = await insertEmployee(full_name, position, contact, history, review, department_id);
-        res.status(201).json({ employee: newEmployee });
+        const employees = await insertEmployee(full_name, position, contact, history, review, department_id);
+        res.status(201).json({ message: "Employee added successfully", employees });
     } catch (error) {
-        console.error("Error inserting employee:", error);
-        res.status(500).json({ message: "Failed to create employee" });
+        res.status(500).json({ message: "Error inserting employee", error: error.message });
     }
 };
 
+// Delete an employee
 const deleteSingleEmployeeCon = async (req, res) => {
     try {
-        const deletedEmployee = await deleteSingleEmployee(req.params.employee_id);
-        if (!deletedEmployee) {
-            return res.status(404).json({ message: "Employee not found for deletion" });
-        }
-        res.json({ message: "Employee deleted successfully" });
+        const employees = await deleteSingleEmployee(req.params.employee_id);
+        res.status(200).json({ message: "Employee deleted successfully", employees });
     } catch (error) {
-        console.error("Error deleting employee:", error);
-        res.status(500).json({ message: "Failed to delete employee" });
+        res.status(500).json({ message: "Error deleting employee", error: error.message });
     }
 };
 
+// Update an employee
 const patchEmployeeCon = async (req, res) => {
-    const { full_name, position, contact, history, review, department_id } = req.body;
     try {
+        const { full_name, position, contact, history, review, department_id } = req.body;
         if (!full_name || !position || !contact || !department_id) {
             return res.status(400).json({ message: "Missing required fields" });
         }
-        const updatedEmployee = await updateEmployee(full_name, position, contact, history, review, department_id, req.params.employee_id);
-        if (!updatedEmployee) {
-            return res.status(404).json({ message: "Employee not found for update" });
-        }
-        res.json({ employee: updatedEmployee });
+        const employees = await updateEmployee(full_name, position, contact, history, review, department_id, req.params.employee_id);
+        res.status(200).json({ message: "Employee updated successfully", employees });
     } catch (error) {
-        console.error("Error updating employee:", error);
-        res.status(500).json({ message: "Failed to update employee" });
+        res.status(500).json({ message: "Error updating employee", error: error.message });
     }
 };
 
-export {
-    getEmployeesCon, 
-    getSingleEmployeeCon, 
-    postEmployeeCon, 
-    deleteSingleEmployeeCon, 
-    patchEmployeeCon
-};
+export { getEmployeesCon, getSingleEmployeeCon, postEmployeeCon, deleteSingleEmployeeCon, patchEmployeeCon };

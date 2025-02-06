@@ -1,5 +1,6 @@
 import mysql from 'mysql2/promise';
 import express from 'express';
+import cors from "cors"
 import { config } from 'dotenv';
 config();
 
@@ -10,6 +11,7 @@ const pool = mysql.createPool({
   database: process.env.DATABASE,
 });
 const app = express();
+app.use(cors())
 app.use(express.json());
 
 
