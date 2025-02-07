@@ -98,8 +98,8 @@ app.get('/employees/:employee_id', async (req, res) => {
 
 // Route to add a new employee
 app.post('/employees', async (req, res) => {
-  const { full_name, position, contact, history, review, department_id } = req.body;
-  res.json({ employees: await insertEmployee(full_name, position, contact, history, review, department_id) });
+  const { full_name, position, contact, department_id } = req.body;
+  res.json({ employees: await insertEmployee(full_name, position, contact, department_id) });
 });
 
 // Route to delete an employee by ID

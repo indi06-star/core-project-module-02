@@ -11,13 +11,19 @@ const getSingleEmployee = async (employee_id) => {
     return data;
 };
 
-const insertEmployee = async (full_name, position, contact, history, review, department_id) => {
-    await pool.query(
-        'INSERT INTO employees (full_name, position, contact, history, review, department_id) VALUES (?, ?, ?, ?, ?, ?)',
-        [full_name, position, contact, history, review, department_id]
-    );
-    return await getEmployees(); // Return the updated employee list
+const postEmployeeCon = async (req, res) => {
+    try {
+        const { full_name, position, contact, history, review, department_id } = req.body;
+        if (!full_name || !position || !contact || !department_id) {
+            return res.status(400).json({ message: "Missing required fields" });
+        }
+        const newEmployee = await insertEmployee(full_name, position, contact, history, review, department_id);
+        res.status(201).json(newEmployee); // Return only the new employee
+    } catch (error) {
+        res.status(500).json({ message: "Error inserting employee", error: error.message });
+    }
 };
+
 
 const deleteSingleEmployee = async (employee_id) => {
     await pool.query('DELETE FROM employees WHERE employee_id = ?', [employee_id]);

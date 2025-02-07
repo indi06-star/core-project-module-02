@@ -37,7 +37,9 @@ const postEmployeeCon = async (req, res) => {
             return res.status(400).json({ message: "Missing required fields" });
         }
         const employees = await insertEmployee(full_name, position, contact, history, review, department_id);
-        res.status(201).json({ message: "Employee added successfully", employees });
+        const newEmployee = employees[employees.length - 1]; // Get the last added employee
+        res.status(201).json(newEmployee);
+        
     } catch (error) {
         res.status(500).json({ message: "Error inserting employee", error: error.message });
     }
