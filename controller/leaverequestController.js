@@ -56,21 +56,29 @@ const deleteSingleLeaveRequestCon = async (req, res) => {
 };
 
 const patchLeaveRequestCon = async (req, res) => {
-    const { employee_id, date, status, reason, action } = req.body;
+    const { status } = req.body;
+    const { leave_request_id } = req.params;
+
     try {
-        if (!employee_id || !date || !status || !reason || !action) {
-            return res.status(400).json({ message: "Missing required fields" });
+        if (!status) {
+            return res.status(400).json({ message: "Missing required field: status" });
         }
-        const updatedLeaveRequest = await updateLeaveRequest(employee_id, date, status, reason, action, req.params.leave_request_id);
-        if (!updatedLeaveRequest) {
-            return res.status(404).json({ message: "Leave request not found for update" });
-        }
-        res.json({ leave_request: updatedLeaveRequest });
+
+        const updatedLeaveRequest = await updateLeaveRequest(
+            null, // Don't need to update employee_id, date, reason, or action
+            null,
+            status,
+            null,
+            null,
+            leave_request_id
+        );
+        res.json({ leave_requests: updatedLeaveRequest });
     } catch (error) {
-        console.error("Error updating leave request:", error);
+        console.error("Error updating leave request status:", error);
         res.status(500).json({ message: "Failed to update leave request" });
     }
 };
+
 
 export {
     getLeaveRequestsCon,

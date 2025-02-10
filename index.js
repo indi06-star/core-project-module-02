@@ -157,42 +157,81 @@ const updateEmployee = async (full_name, position, contact, history, review, dep
 
 //----------------------------------------------------------- LEAVE REQUESTS---------------------------------------------------------------
 // Route to get all leave requests
-app.get('/leave-requests', async (req, res) => {
+app.get('/leaverequests', async (req, res) => {
   res.json({ leave_requests: await getLeaveRequests() });
 });
 
 // Route to get a single leave request by ID
-app.get('/leave-requests/:leave_request_id', async (req, res) => {
+app.get('/leaverequests/:leave_request_id', async (req, res) => {
   res.json({ leave_request: await getSingleLeaveRequest(req.params.leave_request_id) });
 });
 
 // Route to add a new leave request
-app.post('/leave-requests', async (req, res) => {
+app.post('/leaverequests', async (req, res) => {
   const { employee_id, date, status, reason, action } = req.body;
   res.json({ leave_requests: await insertLeaveRequest(employee_id, date, status, reason, action) });
 });
 
 // Route to delete a leave request by ID
-app.delete('/leave-requests/:leave_request_id', async (req, res) => {
+app.delete('/leaverequests/:leave_request_id', async (req, res) => {
   res.json({ leave_request: await deleteSingleLeaveRequest(req.params.leave_request_id) });
 });
 
 // Route to update a leave request's information
-app.patch('/leave-requests/:leave_request_id', async (req, res) => {
-  const { employee_id, date, status, reason, action } = req.body;
-  res.json({ leave_requests: await updateLeaveRequest(employee_id, date, status, reason, action, req.params.leave_request_id) });
+app.patch('/leaverequests/:id', async (req, res) => {
+  const leaveRequestId = req.params.id;
+  const { status } = req.body;
+
+  try {
+    // Assume you're using a database or data structure to store leave requests
+    const leaveRequest = await getSingleLeaveRequest(leaveRequestId);
+    if (!leaveRequest) {
+      return res.status(404).send({ error: 'Leave request not found' });
+    }
+
+    leaveRequest.status = status;
+    await saveLeaveRequest(leaveRequest); // Update the leave request in the database
+
+    // Send updated leave requests back to the frontend
+    const allLeaveRequests = await getAllLeaveRequests();
+    res.json({ leave_requests: allLeaveRequests });
+  } catch (error) {
+    res.status(500).send({ error: 'Failed to update leave request' });
+  }
 });
 
-// Get all leave requests from the database
+
+// // Get all leave requests from the database
+// const getLeaveRequests = async () => {
+//   const [data] = await pool.query('SELECT * FROM leave_requests');
+//   return data;
+// };
+
+
 const getLeaveRequests = async () => {
-  const [data] = await pool.query('SELECT * FROM leave_requests');
+  const [data] = await pool.query(`
+    SELECT leave_requests.*, employees.full_name 
+    FROM employees
+    INNER JOIN leave_requests ON employees.employee_id = leave_requests.employee_id
+  `);
   return data;
 };
 
 const getSingleLeaveRequest = async (leave_request_id) => {
-  const [data] = await pool.query('SELECT * FROM leave_requests WHERE leave_request_id = ?', [leave_request_id]);
-  return data;
+  const [data] = await pool.query(`
+    SELECT leave_requests.*, employees.full_name 
+    FROM payroll
+    INNER JOIN employees ON leave_requests.employee_id = employees.employee_id
+    WHERE leave_requests.leave_request_id = ?
+  `, [leave_request_id]);
+  return data[0]; // Return the first record since we expect only one
 };
+
+
+// const getSingleLeaveRequest = async (leave_request_id) => {
+//   const [data] = await pool.query('SELECT * FROM leave_requests WHERE leave_request_id = ?', [leave_request_id]);
+//   return data;
+// };
 
 const insertLeaveRequest = async (employee_id, date, status, reason, action) => {
   await pool.query(
@@ -215,7 +254,7 @@ const updateLeaveRequest = async (employee_id, date, status, reason, action, lea
   return await getLeaveRequests(); // Return the updated leave request list
 };
 
-//-------------------------------------------------------------- ATTENDANCE---------------------------------------------------------------------
+//--------------------------------------------------------------ATTENDANCE---------------------------------------------------------------------
 // Route to get all attendance records
 app.get('/attendance-records', async (req, res) => {
   res.json({ attendance_records: await getAttendanceRecords() });
@@ -277,41 +316,49 @@ const updateAttendanceRecord = async (employee_id, employee_name, month_year, da
 
 //--------------------------------------------------------- PAYROLL-----------------------------------------------------------------------------
 // Route to get all payroll records
-app.get('/payroll-records', async (req, res) => {
+app.get('/payroll', async (req, res) => {
   res.json({ payroll_records: await getPayrollRecords() });
 });
 
 // Route to get a single payroll record by ID
-app.get('/payroll-records/:payroll_id', async (req, res) => {
+app.get('/payroll/:payroll_id', async (req, res) => {
   res.json({ payroll_record: await getSinglePayrollRecord(req.params.payroll_id) });
 });
 
 // Route to add a new payroll record
-app.post('/payroll-records', async (req, res) => {
+app.post('/payroll', async (req, res) => {
   const { employee_id, hours_worked, leave_deductions, final_salary } = req.body;
   res.json({ payroll_records: await insertPayrollRecord(employee_id, hours_worked, leave_deductions, final_salary) });
 });
 
 // Route to delete a payroll record by ID
-app.delete('/payroll-records/:payroll_id', async (req, res) => {
+app.delete('/payroll/:payroll_id', async (req, res) => {
   res.json({ payroll_record: await deleteSinglePayrollRecord(req.params.payroll_id) });
 });
 
 // Route to update a payroll record's information
-app.patch('/payroll-records/:payroll_id', async (req, res) => {
+app.patch('/payroll/:payroll_id', async (req, res) => {
   const { employee_id, hours_worked, leave_deductions, final_salary } = req.body;
   res.json({ payroll_records: await updatePayrollRecord(employee_id, hours_worked, leave_deductions, final_salary, req.params.payroll_id) });
 });
 
-// Get all payroll records from the database
 const getPayrollRecords = async () => {
-  const [data] = await pool.query('SELECT * FROM payroll');
+  const [data] = await pool.query(`
+    SELECT payroll.*, employees.full_name 
+    FROM employees
+    INNER JOIN payroll ON employees.employee_id = payroll.employee_id
+  `);
   return data;
 };
 
 const getSinglePayrollRecord = async (payroll_id) => {
-  const [data] = await pool.query('SELECT * FROM payroll WHERE payroll_id = ?', [payroll_id]);
-  return data;
+  const [data] = await pool.query(`
+    SELECT payroll.*, employees.full_name 
+    FROM payroll
+    INNER JOIN employees ON payroll.employee_id = employees.employee_id
+    WHERE payroll.payroll_id = ?
+  `, [payroll_id]);
+  return data[0]; // Return the first record since we expect only one
 };
 
 const insertPayrollRecord = async (employee_id, hours_worked, leave_deductions, final_salary) => {
