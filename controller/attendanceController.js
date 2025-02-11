@@ -1,82 +1,75 @@
-import {
-    getAttendanceRecords, 
-    getSingleAttendanceRecord, 
-    insertAttendanceRecord, 
-    deleteSingleAttendanceRecord, 
-    updateAttendanceRecord
-} from "../model/attendaceModal.js";
+import { getAttendanceRecords, insertAttendanceRecord, updateAttendanceRecord, deleteSingleAttendanceRecord } from '../model/attendaceModal.js';
 
+// Route to get all attendance records
 const getAttendanceRecordsCon = async (req, res) => {
-    try {
-        const attendanceRecords = await getAttendanceRecords();
-        res.json({ attendance_records: attendanceRecords });
-    } catch (error) {
-        console.error("Error fetching attendance records:", error);
-        res.status(500).json({ message: "Failed to fetch attendance records" });
-    }
+  try {
+    const attendanceRecords = await getAttendanceRecords(); // Fetch attendance records from the model
+    res.json({ attendance_records: attendanceRecords });
+  } catch (error) {
+    console.error('Error fetching attendance records:', error);
+    res.status(500).json({ error: 'Error fetching attendance records' });
+  }
 };
-
 const getSingleAttendanceRecordCon = async (req, res) => {
-    try {
-        const attendanceRecord = await getSingleAttendanceRecord(req.params.attendance_id);
-        if (!attendanceRecord) {
-            return res.status(404).json({ message: "Attendance record not found" });
-        }
-        res.json({ attendance_record: attendanceRecord });
-    } catch (error) {
-        console.error("Error fetching single attendance record:", error);
-        res.status(500).json({ message: "Failed to fetch attendance record" });
+  const { attendance_id } = req.params;
+  try {
+    const attendanceRecord = await getSingleAttendanceRecord(attendance_id); // Get record from model
+    if (!attendanceRecord) {
+      return res.status(404).json({ error: 'Attendance record not found' });
     }
+    res.json(attendanceRecord);
+  } catch (error) {
+    console.error(`Error fetching attendance record with ID ${attendance_id}:`, error);
+    res.status(500).json({ error: 'Error fetching attendance record' });
+  }
 };
 
+// Route to add a new attendance record
 const postAttendanceRecordCon = async (req, res) => {
-    const { employee_id, employee_name, month_year, day_25, day_26, day_27, day_28, day_29 } = req.body;
-    try {
-        if (!employee_id || !employee_name || !month_year) {
-            return res.status(400).json({ message: "Missing required fields" });
-        }
-        const newAttendanceRecord = await insertAttendanceRecord(employee_id, employee_name, month_year, day_25, day_26, day_27, day_28, day_29);
-        res.status(201).json({ attendance_record: newAttendanceRecord });
-    } catch (error) {
-        console.error("Error inserting attendance record:", error);
-        res.status(500).json({ message: "Failed to create attendance record" });
-    }
+  const { employee_id, employee_name, month_year, attendance } = req.body;
+
+  if (!employee_id || !employee_name || !month_year || !attendance) {
+    return res.status(400).json({ error: 'Employee ID, Name, Month/Year, and Attendance are required' });
+  }
+
+  try {
+    const newRecord = await insertAttendanceRecord(employee_id, employee_name, month_year, attendance); // Insert into model
+    res.status(201).json({ message: 'Attendance record added successfully', attendance_record: newRecord });
+  } catch (error) {
+    console.error('Error adding attendance record:', error);
+    res.status(500).json({ error: 'Error adding attendance record' });
+  }
 };
 
-const deleteSingleAttendanceRecordCon = async (req, res) => {
-    try {
-        const deletedRecord = await deleteSingleAttendanceRecord(req.params.attendance_id);
-        if (!deletedRecord) {
-            return res.status(404).json({ message: "Attendance record not found for deletion" });
-        }
-        res.json({ message: "Attendance record deleted successfully" });
-    } catch (error) {
-        console.error("Error deleting attendance record:", error);
-        res.status(500).json({ message: "Failed to delete attendance record" });
+ const patchAttendanceRecordCon = async (req, res) => {
+  const { attendance_id } = req.params;
+  const updatedFields = req.body;
+
+  if (!updatedFields || Object.keys(updatedFields).length === 0) {
+    return res.status(400).json({ error: "No fields provided for update." });
+  }
+
+  try {
+    const updatedRecord = await updateAttendanceRecord(updatedFields, attendance_id); // Update in model
+    if (!updatedRecord) {
+      return res.status(404).json({ error: 'Attendance record not found' });
     }
+    res.json({ message: 'Attendance record updated successfully', attendance_record: updatedRecord });
+  } catch (error) {
+    console.error('Error updating attendance record:', error);
+    res.status(500).json({ error: 'Error updating attendance record' });
+  }
 };
 
-const patchAttendanceRecordCon = async (req, res) => {
-    const { employee_id, employee_name, month_year, day_25, day_26, day_27, day_28, day_29 } = req.body;
-    try {
-        if (!employee_id || !employee_name || !month_year) {
-            return res.status(400).json({ message: "Missing required fields" });
-        }
-        const updatedRecord = await updateAttendanceRecord(employee_id, employee_name, month_year, day_25, day_26, day_27, day_28, day_29, req.params.attendance_id);
-        if (!updatedRecord) {
-            return res.status(404).json({ message: "Attendance record not found for update" });
-        }
-        res.json({ attendance_record: updatedRecord });
-    } catch (error) {
-        console.error("Error updating attendance record:", error);
-        res.status(500).json({ message: "Failed to update attendance record" });
-    }
+// Route to delete an attendance record by ID
+ const deleteSingleAttendanceRecordCon = async (req, res) => {
+  const { attendance_id } = req.params;
+  try {
+    const deletedRecord = await deleteSingleAttendanceRecord(attendance_id); // Delete from model
+    res.json({ message: 'Attendance record deleted successfully', attendance_record: deletedRecord });
+  } catch (error) {
+    console.error(`Error deleting attendance record with ID ${attendance_id}:`, error);
+    res.status(500).json({ error: 'Error deleting attendance record' });
+  }
 };
-
-export {
-    getAttendanceRecordsCon, 
-    getSingleAttendanceRecordCon, 
-    postAttendanceRecordCon, 
-    deleteSingleAttendanceRecordCon, 
-    patchAttendanceRecordCon
-};
+export{getAttendanceRecordsCon,getSingleAttendanceRecordCon,postAttendanceRecordCon,patchAttendanceRecordCon, deleteSingleAttendanceRecordCon}

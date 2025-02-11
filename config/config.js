@@ -3,10 +3,17 @@ import {config} from "dotenv"
 config()
 
 const pool = mysql2.createPool({
-    hostname:process.env.HOSTNAME,
+    host:process.env.HOST,
     user:process.env.USER,
     password:process.env.PASSWORD,
     database:process.env.DATABASE
 })
 
-export{pool}
+pool.getConnection((err) => {
+    if (!err) {
+       return err ;
+    }
+    console.log("connected successful !")
+  });
+
+export{pool} 

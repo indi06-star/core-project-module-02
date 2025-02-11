@@ -1,16 +1,19 @@
 import mysql from 'mysql2/promise';
 import express from 'express';
+import cors from 'cors' //changes
 import { config } from 'dotenv';
+import attendanceRouter from './routes/attendanceRouter.js'
 config();
 
-const pool = mysql.createPool({
-  hostname: process.env.HOSTNAME,
-  user: process.env.USER,
-  password: process.env.PASSWORD,
-  database: process.env.DATABASE,
-});
+
 const app = express();
+
+//Indi changes
+app.use(cors())
 app.use(express.json());
+//middleware
+app.use('/',attendanceRouter)
+
 
 
 // Start the server on port 4000
@@ -214,125 +217,6 @@ const updateLeaveRequest = async (employee_id, date, status, reason, action, lea
 };
 
 //-------------------------------------------------------------- ATTENDANCE---------------------------------------------------------------------
-// Route to get all attendance records
-app.get('/attendance-records', async (req, res) => {
-  res.json({ attendance_records: await getAttendanceRecords() });
-});
-
-// Route to get a single attendance record by ID
-app.get('/attendance-records/:attendance_id', async (req, res) => {
-  res.json({ attendance_record: await getSingleAttendanceRecord(req.params.attendance_id) });
-});
-
-// Route to add a new attendance record
-app.post('/attendance-records', async (req, res) => {
-  const { employee_id, employee_name, month_year, day_25, day_26, day_27, day_28, day_29 } = req.body;
-  res.json({ attendance_records: await insertAttendanceRecord(employee_id, employee_name, month_year, day_25, day_26, day_27, day_28, day_29) });
-});
-
-// Route to delete an attendance record by ID
-app.delete('/attendance-records/:attendance_id', async (req, res) => {
-  res.json({ attendance_record: await deleteSingleAttendanceRecord(req.params.attendance_id) });
-});
-
-// Route to update an attendance record's information
-app.patch('/attendance-records/:attendance_id', async (req, res) => {
-  const { employee_id, employee_name, month_year, day_25, day_26, day_27, day_28, day_29 } = req.body;
-  res.json({ attendance_records: await updateAttendanceRecord(employee_id, employee_name, month_year, day_25, day_26, day_27, day_28, day_29, req.params.attendance_id) });
-});
-
-// Get all attendance records from the database
-const getAttendanceRecords = async () => {
-  const [data] = await pool.query('SELECT * FROM attendance');
-  return data;
-};
-
-const getSingleAttendanceRecord = async (attendance_id) => {
-  const [data] = await pool.query('SELECT * FROM attendance WHERE id = ?', [attendance_id]);
-  return data;
-};
-
-const insertAttendanceRecord = async (employee_id, employee_name, month_year, day_25, day_26, day_27, day_28, day_29) => {
-  await pool.query(
-    'INSERT INTO attendance (employee_id, employee_name, month_year, day_25, day_26, day_27, day_28, day_29) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-    [employee_id, employee_name, month_year, day_25, day_26, day_27, day_28, day_29]
-  );
-  return await getAttendanceRecords(); // Return the updated attendance list
-};
-
-const deleteSingleAttendanceRecord = async (attendance_id) => {
-  await pool.query('DELETE FROM attendance WHERE id = ?', [attendance_id]);
-  return await getAttendanceRecords(); // Return the updated attendance list
-};
-
-const updateAttendanceRecord = async (employee_id, employee_name, month_year, day_25, day_26, day_27, day_28, day_29, attendance_id) => {
-  await pool.query(
-    'UPDATE attendance SET employee_id = ?, employee_name = ?, month_year = ?, day_25 = ?, day_26 = ?, day_27 = ?, day_28 = ?, day_29 = ? WHERE id = ?',
-    [employee_id, employee_name, month_year, day_25, day_26, day_27, day_28, day_29, attendance_id]
-  );
-  return await getAttendanceRecords(); // Return the updated attendance list
-};
-
-//--------------------------------------------------------- PAYROLL-----------------------------------------------------------------------------
-// Route to get all payroll records
-app.get('/payroll-records', async (req, res) => {
-  res.json({ payroll_records: await getPayrollRecords() });
-});
-
-// Route to get a single payroll record by ID
-app.get('/payroll-records/:payroll_id', async (req, res) => {
-  res.json({ payroll_record: await getSinglePayrollRecord(req.params.payroll_id) });
-});
-
-// Route to add a new payroll record
-app.post('/payroll-records', async (req, res) => {
-  const { employee_id, hours_worked, leave_deductions, final_salary } = req.body;
-  res.json({ payroll_records: await insertPayrollRecord(employee_id, hours_worked, leave_deductions, final_salary) });
-});
-
-// Route to delete a payroll record by ID
-app.delete('/payroll-records/:payroll_id', async (req, res) => {
-  res.json({ payroll_record: await deleteSinglePayrollRecord(req.params.payroll_id) });
-});
-
-// Route to update a payroll record's information
-app.patch('/payroll-records/:payroll_id', async (req, res) => {
-  const { employee_id, hours_worked, leave_deductions, final_salary } = req.body;
-  res.json({ payroll_records: await updatePayrollRecord(employee_id, hours_worked, leave_deductions, final_salary, req.params.payroll_id) });
-});
-
-// Get all payroll records from the database
-const getPayrollRecords = async () => {
-  const [data] = await pool.query('SELECT * FROM payroll');
-  return data;
-};
-
-const getSinglePayrollRecord = async (payroll_id) => {
-  const [data] = await pool.query('SELECT * FROM payroll WHERE payroll_id = ?', [payroll_id]);
-  return data;
-};
-
-const insertPayrollRecord = async (employee_id, hours_worked, leave_deductions, final_salary) => {
-  await pool.query(
-    'INSERT INTO payroll (employee_id, hours_worked, leave_deductions, final_salary) VALUES (?, ?, ?, ?)',
-    [employee_id, hours_worked, leave_deductions, final_salary]
-  );
-  return await getPayrollRecords(); // Return the updated payroll list
-};
-
-const deleteSinglePayrollRecord = async (payroll_id) => {
-  await pool.query('DELETE FROM payroll WHERE payroll_id = ?', [payroll_id]);
-  return await getPayrollRecords(); // Return the updated payroll list
-};
-
-const updatePayrollRecord = async (employee_id, hours_worked, leave_deductions, final_salary, payroll_id) => {
-  await pool.query(
-    'UPDATE payroll SET employee_id = ?, hours_worked = ?, leave_deductions = ?, final_salary = ? WHERE payroll_id = ?',
-    [employee_id, hours_worked, leave_deductions, final_salary, payroll_id]
-  );
-  return await getPayrollRecords(); // Return the updated payroll list
-};
-
 //---------------------------------------------------------------DEPARTMENT------------------------------------------------------------------------
 // Department Routes
 // Route to get all departments
