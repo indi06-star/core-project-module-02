@@ -1,5 +1,5 @@
 import express from 'express';
-import {getLeaveRequestsCon,getSingleLeaveRequestCon,postLeaveRequestCon,deleteSingleLeaveRequestCon,patchLeaveRequestCon} from '../controller/leaveRequestsController.js';
+import {getLeaveRequestsCon,getSingleLeaveRequestCon,postLeaveRequestCon,deleteSingleLeaveRequestCon,patchLeaveRequestCon} from '../controller/leaverequestController.js';
 
 const router = express.Router();
 
